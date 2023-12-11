@@ -2,7 +2,7 @@ import geopandas as gpd
 import os
 import pandas as pd
 
-# Ler o arquivo do de para
+# Ler o arquivo do de para desejado
 caminho_de_para = 'De-para-cristalizacao\De_para.xlsx'
 arquivo_de_para = pd.read_excel(caminho_de_para)
 
