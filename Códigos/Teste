@@ -1,1 +1,45 @@
+import geopandas as gpd
+import os
+import pandas as pd
+
+# Ler o arquivo do IPTU (assumindo que é um arquivo TXT)
+caminho_iptu = 'C:\AAATino\Poli\TCC\IPTU_TF2\Bases IPTU.csv\Arquivos CSV\IPTU_consolidado.txt'
+arquivo_iptu = pd.read_csv(caminho_iptu, sep='\t', encoding='utf-8', dtype={'SQL (ajustado)': str})
+
+# Adicione zeros à esquerda para ajustar o comprimento para 10 caracteres
+arquivo_iptu['SQL (ajustado)'] = arquivo_iptu['SQL (ajustado)'].apply(lambda x: x.zfill(10) if len(str(x)) < 10 else x)
+
+print(arquivo_iptu.head(100))
+
+# pasta onde estão os arquivos do CEM do determinado ano
+pasta_origem = r'C:\AAATino\Estudos RE\CEM\Infos_por_distrito_todos_lotes'
+
+# pasta onde vai ficar os arquivos do CEM de determinado ano com a atribuição de ZEIS
+pasta_destino = r'C:\AAATino\Estudos RE\CEM\TCC_distritos com classificação'
+
+# lista com todos arquivos base do CEM
+arquivos_gpkg = [f for f in os.listdir(pasta_origem) if f.endswith('.gpkg')]
+
+# iteração de cada layer base de distrito com o arquivo do IPTU
+for arquivo in arquivos_gpkg:
+    caminho_origem = os.path.join(pasta_origem, arquivo)
+    lotes_distrito = gpd.read_file(caminho_origem)
+
+    # novo CRS
+    novo_crs = 'EPSG:31983'
+    lotes_distrito = lotes_distrito.to_crs(novo_crs)
+
+    # join espacial
+    lotes_distrito['Aux SQL_join'] = lotes_distrito['sqlc'].str[:10]
+    info_lotes_joined = pd.merge(
+        lotes_distrito, arquivo_iptu,
+        left_on='Aux SQL_join', right_on='SQL (ajustado)', how='left'
+    )
+    info_lotes_joined = gpd.GeoDataFrame(info_lotes_joined, geometry='geometry')
+
+    # salvar na pasta nova
+    nome_arquivo_destino = f"IPTU_2023_{arquivo.split('lotes')[1].strip()}"
+    caminho_destino = os.path.join(pasta_destino, nome_arquivo_destino)
+    info_lotes_joined.to_file(caminho_destino, driver='GPKG')
+    print("Operação feita para", arquivo)
 
