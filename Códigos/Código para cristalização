@@ -1,0 +1,38 @@
+import geopandas as gpd
+import os
+import pandas as pd
+
+# Ler o arquivo do de para
+caminho_de_para = 'De-para-cristalizacao\De_para.xlsx'
+arquivo_de_para = pd.read_excel(caminho_de_para)
+
+# pasta onde estão os arquivos do CEM do ano em questão
+pasta_origem = r'TCC_distritos com classificação'
+
+# pasta onde vai ficar os arquivos do CEM de determinado ano com a atribuição de Lotes vindas do IPTU com a classificação de cristalização adotada na sua planilha
+pasta_destino = r'TCC_distritos_cristalizados'
+
+# lista com todos arquivos base do CEM cjá com classificação do IPTU
+arquivos_gpkg = [f for f in os.listdir(pasta_origem) if f.endswith('.gpkg')]
+
+# iteração de cada layer base de distrito com o arquivo de para
+for arquivo in arquivos_gpkg:
+    caminho_origem = os.path.join(pasta_origem, arquivo)
+    lotes_distrito = gpd.read_file(caminho_origem)
+
+    # novo CRS
+    novo_crs = 'EPSG:31983'
+    lotes_distrito = lotes_distrito.to_crs(novo_crs)
+
+    # join a partir do de_para
+    info_lotes_joined = pd.merge(
+        lotes_distrito, arquivo_de_para,
+        left_on='TIPO DE USO DO IMOVEL', right_on='TIPO DE USO', how='left'
+    )
+    info_lotes_joined = gpd.GeoDataFrame(info_lotes_joined, geometry='geometry')
+
+    # salvar na pasta nova
+    nome_arquivo_destino = f"IPTU_Cristalizado_2023_{arquivo.split('2023')[1].strip()}"
+    caminho_destino = os.path.join(pasta_destino, nome_arquivo_destino)
+    info_lotes_joined.to_file(caminho_destino, driver='GPKG')
+    print("Operação feita para", arquivo)
