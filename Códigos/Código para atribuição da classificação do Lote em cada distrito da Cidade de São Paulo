@@ -13,7 +13,7 @@ arquivo_iptu['SQL (ajustado)'] = arquivo_iptu['SQL (ajustado)'].apply(lambda x: 
 pasta_origem = r'CEM\Infos_por_distrito_todos_lotes'
 
 # pasta onde vai ficar os arquivos do CEM de determinado ano com a atribuição de classificação de lotes vindas do IPTU, como resultado
-pasta_destino = r'C:\AAATino\Estudos RE\CEM\TCC_distritos com classificação'
+pasta_destino = r'CEM\TCC_distritos com classificação'
 
 # lista com todos arquivos base do CEM
 arquivos_gpkg = [f for f in os.listdir(pasta_origem) if f.endswith('.gpkg')]
